@@ -37,15 +37,10 @@ class PostsController < ApplicationController
 
   def search
     @q = Post.ransack(title_cont: params[:q])
-    if params[:tag_id].present?
-      tag = Tag.find(params[:tag_id])
-      @posts = tag.posts.distinct
-    else
-      @posts = @q.result(distinct: true)
-    end
+    @posts = @q.result(distinct: true)
+
     respond_to do |format|
-      format.js
-      format.json { render json: @posts.pluck(:title) }
+      format.json { render json: @posts.limit(10).pluck(:title) } # 件数制限も重要
       format.html { render :search }
     end
   end

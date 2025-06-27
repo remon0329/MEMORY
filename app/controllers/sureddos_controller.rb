@@ -22,15 +22,17 @@ class SureddosController < ApplicationController
 
   def search
     @q = Sureddo.ransack(title_cont: params[:q])
+
     if params[:tag_id].present?
       tag = Tag.find(params[:tag_id])
       @sureddos = tag.sureddos.distinct
     else
       @sureddos = @q.result(distinct: true)
     end
+
     respond_to do |format|
       format.js
-      format.json { render json: @sureddos.pluck(:title) }
+      format.json { render json: @sureddos.limit(10).pluck(:title) } # ← 件数制限追加
       format.html { render :search }
     end
   end

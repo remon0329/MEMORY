@@ -1,43 +1,22 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["input", "results"];
+  static targets = ["input", "results"]
+  static values = { url: String }
 
-  search() {
-    const query = this.inputTarget.value;
-
-    if (query.length > 0) {
-      // 検索リクエストのURL
-      fetch(`/posts/search?q[title_cont]=${encodeURIComponent(query)}`, { method: "GET" })
-        .then(response => response.json())
-        .then(data => {
-          this.resultsTarget.innerHTML = ""; // 検索結果をリセット
-
-          if (data.length > 0) {
-            data.forEach(post => {
-              const li = document.createElement("li");
-              li.classList.add("list-group-item", "cursor-pointer");
-              li.innerHTML = `<span>${post.title}</span>`;
-              li.addEventListener("click", () => this.selectTitle(post.title));
-              this.resultsTarget.appendChild(li);
-            });
-          } else {
-            const li = document.createElement("li");
-            li.classList.add("list-group-item");
-            li.innerHTML = "検索結果が見つかりませんでした";
-            this.resultsTarget.appendChild(li);
-          }
-        })
-        .catch(error => {
-          console.error("検索エラー:", error);
-        });
-    } else {
-      this.resultsTarget.innerHTML = "";  // 入力が空の場合、検索結果を非表示
-    }
+  connect() {
+    this.inputTarget.addEventListener("input", this.onInput.bind(this))
   }
 
-  selectTitle(title) {
-    this.inputTarget.value = title;  // 入力欄に選択したタイトルを設定
-    this.resultsTarget.innerHTML = ""; // 検索結果を非表示
+  async onInput(event) {
+    const query = this.inputTarget.value
+    if (query.length < 1) return
+
+    const response = await fetch(`${this.urlValue}?q=${encodeURIComponent(query)}`)
+    const results = await response.json()
+
+    this.resultsTarget.innerHTML = results.map(title =>
+      `<li class="p-2 cursor-pointer hover:bg-gray-100">${title}</li>`
+    ).join("")
   }
 }

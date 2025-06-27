@@ -10,7 +10,8 @@ Rails.application.routes.draw do
   end
   root "posts#top"
   get "posts/sureddo", to: "posts#sureddo", as: "sureddo_posts"
-  get "sureddos/search", to: "sureddos#search", as: "sureddo_search"
+  get "sureddos/search", to: "sureddos#search", defaults: { format: :json }
+  get "posts/search", to: "posts#search", defaults: { format: :json }
   resources :notifications, only: [ :index ] do
     delete "clear", on: :collection  # clearアクションへのルートを追加
   end
