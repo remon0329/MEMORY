@@ -1,14 +1,14 @@
 <h4 class="font-bold mx-2.5">スレッドを投稿する</h4>
   
-<%= form_with model: @sureddo, local: true do |form| %>
+<%= form_with model: @sureddo, local: true, id: "sureddo-form" do |form| %>
   <div class="form-group pl-2 py-4">
     <%= form.label :title, 'タイトル' %>
-    <%= form.text_field :title, class: 'form-control border border-black p-2 w-3/4 sm:w-3/5', required: true %>
+    <%= form.text_field :title, class: 'form-control border border-black p-2 w-3/4 sm:w-3/5', required: true, id: "sureddo_title" %>
   </div>
 
   <div class="form-group pl-2 py-4">
     <%= form.label :description, '説明欄' %>
-    <%= form.text_area :description, class: 'form-control border border-black p-2 w-3/4 sm:w-3/5', required: true %>
+    <%= form.text_area :description, class: 'form-control border border-black p-2 w-3/4 sm:w-3/5', required: true, id: "sureddo_description" %>
   </div>
 
   <div class="form-group pl-2 py-4">
@@ -30,6 +30,30 @@
   </div>
 
   <div class="form-group pl-2 py-4">
-    <%= form.submit "投稿する", class: 'btn btn-primary mx-2.5', data: { action: "click->loading#show" } %>
+    <%= form.submit "投稿する", class: 'btn btn-primary mx-2.5', disabled: true, data: { action: "click->loading#show" } %>
   </div>
 <% end %>
+
+<script>
+  document.addEventListener("turbo:load", () => {
+    const form = document.getElementById("sureddo-form");
+    if (!form) return;
+
+    const submitButton = form.querySelector("input[type='submit']");
+    const titleField = document.getElementById("sureddo_title");
+    const descriptionField = document.getElementById("sureddo_description");
+
+    const validateForm = () => {
+      const titleFilled = titleField.value.trim().length > 0;
+      const descriptionFilled = descriptionField.value.trim().length > 0;
+
+      submitButton.disabled = !(titleFilled && descriptionFilled);
+    };
+
+    [titleField, descriptionField].forEach(field => {
+      field.addEventListener("input", validateForm);
+    });
+
+    validateForm();
+  });
+</script>
