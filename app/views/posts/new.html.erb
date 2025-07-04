@@ -1,6 +1,6 @@
 <h3 class="font-bold mx-2.5">動画投稿</h3>
 
-<%= form_with model: @post, local: true do |form| %>
+<%= form_with model: @post, local: true, id: 'post-form' do |form| %>
   <div class="form-group pl-2 py-4">
     <%= form.label :title, 'タイトル' %>
     <%= form.text_field :title, class: 'form-control border border-black p-2 w-3/4 sm:w-3/5', required: true %>
@@ -39,6 +39,41 @@
   </div>
 
   <div class="pl-2 py-4">
-    <%= form.submit "投稿する", class: 'btn btn-primary mx-2.5', data: { action: "click->loading#show" } %>
+    <%= form.submit "投稿する", class: 'btn btn-primary mx-2.5', disabled: true, data: { action: "click->loading#show" } %>
   </div>
 <% end %>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("post-form");
+    const submitButton = form.querySelector("input[type='submit']");
+
+    const titleField = document.getElementById("post_title");
+    const descriptionField = document.getElementById("post_description");
+    const videoUrlField = document.getElementById("post_video_url");
+    const videoFileField = document.getElementById("post_video_file");
+
+    const validateForm = () => {
+      const title = titleField.value.trim();
+      const description = descriptionField.value.trim();
+      const videoUrl = videoUrlField.value.trim();
+      const videoFileSelected = videoFileField.files.length > 0;
+
+      const titleFilled = title.length > 0;
+      const descriptionFilled = description.length > 0;
+      const atLeastOneVideoSelected = videoUrl || videoFileSelected;
+
+      if (titleFilled && descriptionFilled && atLeastOneVideoSelected) {
+        submitButton.disabled = false;
+      } else {
+        submitButton.disabled = true;
+      }
+    };
+
+    [titleField, descriptionField, videoUrlField].forEach(field => {
+      field.addEventListener("input", validateForm);
+    });
+    videoFileField.addEventListener("change", validateForm);
+
+    validateForm(); // 初期状態チェック
+  });
+</script>
