@@ -12,3 +12,11 @@
     margin-top: 10px; /* 通知アイコンを2行目に配置 */
   }
 }
+
+.hidden-section {
+  @apply opacity-0 translate-y-8;
+}
+
+.visible-section {
+  @apply opacity-100 translate-y-0;
+}

@@ -1,0 +1,13 @@
+<div class="min-h-screen flex justify-center items-center">
+  <h1 class="text-4xl font-bold">ようこそ</h1>
+</div>
+
+<% 3.times do |i| %>
+  <div class="min-h-screen flex justify-center items-center transition-opacity transition-transform duration-700 hidden-section" data-index="<%= i %>">
+    <img src="<%= asset_path("image#{i + 1}.jpg") %>" alt="説明画像 <%= i + 1 %>" class="max-w-md rounded-lg shadow-lg">
+  </div>
+<% end %>
+
+<div class="min-h-screen flex justify-center items-center transition-opacity transition-transform duration-700 hidden-section end-section">
+  <h2 class="text-3xl font-semibold">さあ始めましょう</h2>
+</div>
