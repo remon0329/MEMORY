@@ -73,20 +73,35 @@ class PostsController < ApplicationController
 
   def create
     @post = current_user.posts.build(post_params)
-    @post.user_id = current_user.id
-    @post.user_name = current_user.name
+    @post.user_name = current_user.name # user_idはbuildで自動セットされるのでnameだけでOK
 
+    # タグの処理
     if params[:post][:predefined_tags].present?
-      predefined_tags = params[:post][:predefined_tags]
-      @post.tag_list = (predefined_tags.split(",") + params[:post][:tag_list].split(",")).uniq
+      predefined_tags = params[:post][:predefined_tags].to_s.split(",")
+      user_tags = params[:post][:tag_list].to_s.split(",")
+      @post.tag_list = (predefined_tags + user_tags).uniq
     else
-      @post.tag_list = params[:post][:tag_list].split(",")
+      @post.tag_list = params[:post][:tag_list].to_s.split(",")
+    end
+
+    # ★重要：両方入力されていた場合のガード
+    if params[:post][:video_url].present? && params[:post][:video_file].present?
+      @post.errors.add(:base, "YouTubeの動画URLと動画ファイルは同時に指定できません")
+      render :new and return
+    end
+
+    # ★片方だけを確実に保存するための処理（念のため）
+    if params[:post][:video_url].present?
+      @post.video_file.purge # もしファイルがあっても消す
+    elsif params[:post][:video_file].present?
+      @post.video_url = nil   # URLが入っていても空にする
     end
 
     if @post.save
       redirect_to root_path, notice: "投稿が完了しました"
     else
-      render :new
+      # バリデーションエラー時は入力内容を保持してnewへ
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -94,29 +109,32 @@ class PostsController < ApplicationController
   end
 
   def update
-    post_attributes = post_params
+    # 1. まずタグなどの特殊な処理を済ませる
     if params[:post][:predefined_tags].present?
-      predefined_tags = params[:post][:predefined_tags]
-      @post.predefined_tags = predefined_tags
-      @post.tag_list = (predefined_tags.split(",") + params[:post][:tag_list].split(",")).uniq
+      all_tags = (params[:post][:predefined_tags].split(",") + params[:post][:tag_list].to_s.split(",")).uniq
+      @post.tag_list = all_tags
     else
-      @post.tag_list = params[:post][:tag_list].split(",")
+      @post.tag_list = params[:post][:tag_list].to_s.split(",")
     end
+
+    # 2. 動画URLとファイルの排他チェック（コントローラでやるなら）
     if params[:post][:video_url].present? && params[:post][:video_file].present?
       @post.errors.add(:base, "YouTubeの動画URLと動画ファイルは同時に更新できません")
       render :edit and return
     end
+
+    # 3. どちらか一方があったら片方を消す処理
     if params[:post][:video_url].present?
-      @post.video_url = params[:post][:video_url]
       @post.video_file.purge if @post.video_file.attached?
     elsif params[:post][:video_file].present?
-      @post.video_file.attach(params[:post][:video_file])
       @post.video_url = nil
     end
-    if @post.update(post_attributes)
-      redirect_to post_path(current_user), notice: "投稿が更新されました"
+
+    # 4. 保存（attributesを渡して一気に更新）
+    if @post.update(post_params)
+      redirect_to post_path(@post), notice: "投稿が更新されました" # @postに変更
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 

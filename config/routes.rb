@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     get "/users/sign_out" => "devise/sessions#destroy"
   end
   root "posts#top"
+  get "intro", to: "home#intro"
   get "posts/sureddo", to: "posts#sureddo", as: "sureddo_posts"
   get "sureddos/search", to: "sureddos#search", defaults: { format: :json }
   get "posts/search", to: "posts#search", defaults: { format: :json }

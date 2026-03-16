@@ -43,30 +43,40 @@
   </div>
 <% end %>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("turbo:load", () => { // Rails 7ならDOMContentLoadedよりturbo:loadが確実です
     const form = document.getElementById("post-form");
-    const submitButton = form.querySelector("input[type='submit']");
+    if (!form) return;
 
+    const submitButton = form.querySelector("input[type='submit']");
     const titleField = document.getElementById("post_title");
     const descriptionField = document.getElementById("post_description");
     const videoUrlField = document.getElementById("post_video_url");
     const videoFileField = document.getElementById("post_video_file");
 
     const validateForm = () => {
-      const title = titleField.value.trim();
-      const description = descriptionField.value.trim();
-      const videoUrl = videoUrlField.value.trim();
-      const videoFileSelected = videoFileField.files.length > 0;
+      const titleFilled = titleField.value.trim().length > 0;
+      const descriptionFilled = descriptionField.value.trim().length > 0;
+      
+      const hasUrl = videoUrlField.value.trim().length > 0;
+      const hasFile = videoFileField.files.length > 0;
 
-      const titleFilled = title.length > 0;
-      const descriptionFilled = description.length > 0;
-      const atLeastOneVideoSelected = videoUrl || videoFileSelected;
+      // 条件1: どちらか一方は入力されている
+      const atLeastOneVideoSelected = hasUrl || hasFile;
+      // 条件2: 両方は入力されていない（排他制御）
+      const notBothSelected = !(hasUrl && hasFile);
 
-      if (titleFilled && descriptionFilled && atLeastOneVideoSelected) {
+      // 全ての条件を満たしているときだけボタンを有効化
+      if (titleFilled && descriptionFilled && atLeastOneVideoSelected && notBothSelected) {
         submitButton.disabled = false;
+        submitButton.style.opacity = "1";
       } else {
         submitButton.disabled = true;
+        submitButton.style.opacity = "0.5"; // 押せないことが見た目でわかるように
       }
+
+      // 入力欄自体の無効化（さらなる親切設計）
+      videoUrlField.disabled = hasFile;
+      videoFileField.disabled = hasUrl;
     };
 
     [titleField, descriptionField, videoUrlField].forEach(field => {
@@ -74,6 +84,6 @@
     });
     videoFileField.addEventListener("change", validateForm);
 
-    validateForm();
+    validateForm(); // 初期読み込み時
   });
 </script>
