@@ -69,8 +69,14 @@ class Post < ApplicationRecord
   private
 
   def video_url_or_video_file
-    if video_url.blank? && video_file.blank?
-      errors.add(:base, "YouTubeの動画URLまたは動画ファイルを入力してください")
+    # 1. 両方空の場合
+    if video_url.blank? && !video_file.attached?
+      errors.add(:base, "YouTubeの動画URLまたは動画ファイルのどちらかを入力してください")
+    end
+
+    # 2. 両方入力されている場合（Active Storageは attached? で判定）
+    if video_url.present? && video_file.attached?
+      errors.add(:base, "YouTubeの動画URLと動画ファイルは同時に指定できません")
     end
   end
 end
